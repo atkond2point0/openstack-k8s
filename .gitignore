@@ -1,0 +1,9 @@
+.secrets
+local_user.json
+clouds.yaml
+*backup
+terraform.tfstate
+plan
+openrc.sh
+.terraform.lock.hcl
+.terraform/
