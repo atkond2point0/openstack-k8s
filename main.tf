@@ -86,8 +86,6 @@ resource "openstack_networking_router_v2" "router_1" {
   name                = "main_router"
   admin_state_up      = true
   external_network_id = "2e6438ff-f5a1-42d8-860b-56def0320bff"
-  external_subnet_ids = ["7d3044e1-d627-43b1-82f9-9dee85e0ac1f"]
-  enable_snat = true
 }
 
 resource "openstack_networking_network_v2" "network_1" {
@@ -97,7 +95,7 @@ resource "openstack_networking_network_v2" "network_1" {
 
 resource "openstack_networking_subnet_v2" "subnet_1" {
   name = "subnet_192.168"
-  network_id = "25a250b6-7075-4f86-bb68-220ad7aee6f7"
+  network_id = "${openstack_networking_network_v2.network_1.id}"
   cidr       = "192.168.100.0/24"
   allocation_pool {
   start = "192.168.100.2"
@@ -106,6 +104,12 @@ resource "openstack_networking_subnet_v2" "subnet_1" {
   gateway_ip  = "192.168.100.1"
   enable_dhcp = true
   dns_nameservers = ["89.169.69.69", "77.88.8.8"]
+}
+
+
+resource "openstack_networking_router_interface_v2" "router_interface" {
+  router_id = openstack_networking_router_v2.router_1.id
+  subnet_id = openstack_networking_subnet_v2.subnet_1.id
 }
 
 resource "openstack_networking_secgroup_v2" "secgroup_1" {
@@ -168,6 +172,16 @@ resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_6443_out" {
   protocol          = "tcp"
   port_range_min    = 6443
   port_range_max    = 6443
+  remote_ip_prefix  = "0.0.0.0/0"
+  security_group_id = openstack_networking_secgroup_v2.secgroup_1.id
+}
+
+resource "openstack_networking_secgroup_rule_v2" "secgroup_rule_22_in" {
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "tcp"
+  port_range_min    = 22
+  port_range_max    = 22
   remote_ip_prefix  = "0.0.0.0/0"
   security_group_id = openstack_networking_secgroup_v2.secgroup_1.id
 }
